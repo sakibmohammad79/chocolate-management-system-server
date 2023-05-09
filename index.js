@@ -9,7 +9,7 @@ app.use(cors());
 app.use(express.json());
 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_NAME}:${process.env.DB_PASS}@cluster0.5a8lj4m.mongodb.net/?retryWrites=true&w=majority`;
 
 
@@ -28,7 +28,26 @@ async function run() {
     await client.connect();
 
 
+    const chocolateCollection = client.db("chocolateDb").collection("chocolate");
 
+    app.get('/chocolate', async(req, res) => {
+      const cursor = chocolateCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+
+  app.post('/chocolate', async(req, res) => {
+    const newChocolate = req.body;
+    const result = await chocolateCollection.insertOne(newChocolate);
+    res.send(result)
+  })
+
+  app.delete('/chocolate/:id', async(req, res)=> {
+    const id = req.params.id;
+    const query = {_id: new ObjectId(id)}
+    const result = await chocolateCollection.deleteOne(query);
+    res.send(result);
+  })
     
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
